@@ -1,76 +1,62 @@
-const { Schema, model } = require("mongoose");
+import { Schema, model } from "mongoose";
 import bcrypt from 'bcrypt';
-import { constant } from '../constant.js';
+import { env } from '../constant.js';
 
 const userSchema = new Schema({
+    username: {
+        type: String,
+        required: [true, 'Username is required'],
+        validate: {
+            validator: async function (username) {
+                // check if  already exist in db
+                let user = await UserModel.findOne({ username }, '_id');
+                env.NODE_ENV && console.log(user);
+                if (user) return false;
+                else return true;
+            },
+            message: props => `${props.value} is not avilable`
+        },
+    },
+    password: {
+        type: String,
+        required: [true, 'Password is required']
+    },
+    Avatar: {
+        type: String
+    },
     firstName: {
         type: String,
         required: [true, 'First Name is required']
     },
     lastName: {
         type: String,
-        required: [true, 'Last Name is required']
     },
-    Avatar: {
-        type: String
+    phone: {
+        type: String,
+        validate: {
+            validator: async function (phone) {
+                // check if  already exist in db
+                let user = await UserModel.findOne({ phone }, '_id');
+                env.NODE_ENV && console.log(user);
+                if (user) return false;
+                else return true;
+            },
+            message: props => `${props.value} is already associated with another account`
+        },
     },
     email: {
         type: String,
-        required: [true, 'Email is required'],
         validate: {
-            validator: function (email) {
-                return constant.emailRegEx.test(email);
+            validator: async function (email) {
+                // check if  already exist in db
+                let user = await UserModel.findOne({ email }, '_id');
+                env.NODE_ENV && console.log(user);
+                if (user) return false;
+                else return true;
             },
-            message: props => `${props.value} is not a valid Email!`
+            message: props => `${props.value} is already associated with another account`
         },
     },
-    password: {
-        // unselect
-        type: String,
-    },
-    passwordChangedAt: {
-        // unselect
-        type: Date,
-    },
-    passwordResetToken: {
-        // unselect
-        type: String,
-    },
-    passwordResetExpires: {
-        // unselect
-        type: Date,
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now(),
-    },
-    updatedAt: {
-        // unselect
-        type: Date,
-    },
-    // verified: {
-    //     type: Boolean,
-    //     default: false,
-    // },
-    // otp: {
-    //     type: String,
-    // },
-    // otp_expiry_time: {
-    //     type: Date,
-    // },
-    // friends: [
-    //     {
-    //         type: mongoose.Schema.ObjectId,
-    //         ref: "User",
-    //     },
-    // ],
-    // socket_id: {
-    //     type: String
-    // },
-    // status: {
-    //     type: String,
-    //     enum: ["Online", "Offline"]
-    // }
 
 });
 

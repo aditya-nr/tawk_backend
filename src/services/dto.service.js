@@ -1,5 +1,6 @@
-export class UserDto {
-    constructor(doc) {
-        this.uid = doc._id;
+export function AccessTokenDto(doc) {
+    return {
+        uid: doc._id,
+        username: doc.username,
     }
-};
+}

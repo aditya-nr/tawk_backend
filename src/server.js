@@ -6,6 +6,10 @@ import { rateLimit } from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import cors from 'cors';
 
+import { userRouter } from './routes/index.js';
+import { ApiError } from './middleware/index.js';
+
+
 const app = express();
 
 // cors
@@ -38,9 +42,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize({ replaceWith: '_' }));
 
 // routes
-app.get('/', (req, res) => {
-    res.json({ status: 200 })
-})
+app.get('/', (req, res) => res.json({ status: 200, mesagge: "ALL OK" }))
+app.use('/auth', userRouter);
+
+
+// error handler
+app.use(ApiError);
+
 
 const server = http.createServer(app);
 export default server;
