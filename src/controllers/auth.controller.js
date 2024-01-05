@@ -41,7 +41,83 @@ const AuthController = {
         req.user = user;
         next();
     },
+    /**
+     * /api/send-otp
+     */
+    sendOtp: async (req, res, next) => {
+        // constant
+        const PHONE = "PHONE"
+        const EMAIL = "EMAIL"
 
+        // 1) take {email,phone} from req.body
+        const { email, phone, mode } = req.body;
+        let owner;
+
+        // 2) validate the data
+        // 2.1) check if {email/phone already registered with other account or not}
+        try {
+            await string()
+                .oneOf([PHONE, EMAIL], 'mode is invalid')
+                .required('mode is required')
+                .validate(mode);
+
+            if (mode == EMAIL)
+                owner = await string()
+                    .email('Email is invalid')
+                    .required('Email is required')
+                    .test('is-unique-email', 'Email is already taken', async (email) => {
+                        try {
+                            let user = await UserModel.findOne({ email }, 'email');
+                            console.log(user);
+                            return !!user ? false : true;
+                        } catch (error) {
+                            throw error;
+                        }
+                    })
+                    .validate(email);
+            else
+                owner = await string()
+                    .required('Phone Number is required')
+                    .test('is-number', 'Phone number is invalid', (value) => !isNaN(Number(value.replace(/\s/g, ''))))
+                    .test('is-unique-phone', 'Phone Number is already in use', async (phone) => {
+                        try {
+                            let user = await UserModel.findOne({ phone }, 'phone');
+                            console.log(user);
+                            return !!user ? false : true;
+                        } catch (error) {
+                            throw error;
+                        }
+                    })
+                    .validate(phone);
+
+        } catch (error) {
+            // ValidationError : yup
+            return next(error);
+        }
+
+
+
+        // 3) generate otp,token 
+        const { otp, token } = OtpService.generateOTP(owner, env.OTP_TTL, env.OTP_SALT);
+
+        // 4) send otp to {email/phone}
+        try {
+            if (mode == EMAIL) {
+                let body = `Your otp is <OTP>. Valid upto ${Number(env.OTP_TTL)} min`;
+                body = body.replace('<OTP>', otp.toString());
+                await MailService.sendMail(body);
+            } else {
+                let body = `Your otp is <OTP>. Valid upto ${Number(env.OTP_TTL)} min`;
+                body = body.replace('<OTP>', otp.toString());
+                await SmsService.sendSms(body);
+            }
+        } catch (error) {
+            return next(error);
+        }
+
+        // 5) send token as res
+        res.json({ status: 200, data: { token } });
+    },
 
 }
 
