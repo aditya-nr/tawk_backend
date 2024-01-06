@@ -41,6 +41,7 @@ const AuthController = {
         req.user = user;
         next();
     },
+
     /**
      * /api/send-otp
      */
@@ -119,6 +120,47 @@ const AuthController = {
         res.json({ status: 200, data: { token } });
     },
 
+    /**
+     * /api/register
+     */
+    register: async (req, res, next) => {
+        // 1) take {name,username,password} from body
+        let { firstName, lastName, username, password } = req.body;
+        let { mode, email, phone } = req.body;
+
+        // 2) validate data
+        let data;
+        try {
+            data = await object({
+                firstName: string(),
+                lastName: string(),
+                username: string(),
+                password: string()
+            })
+                .validate({ firstName, lastName, username, password })
+        } catch (error) {
+            return next(error);
+        }
+        if (mode == "PHONE")
+            data = { ...data, phone };
+        else
+            data = { ...data, email };
+
+        // 3) check if user already exist or mode already exist or not
+        // TODO :: add this feature to UserModel itself
+
+        // 4) save the user 
+        let user = new UserModel({ ...data });
+        try {
+            user = await user.save();
+        } catch (error) {
+            return next(error);
+        }
+
+        // 5) issue jwt
+        req.user = user;
+        next();
+    },
 }
 
 export default AuthController;
