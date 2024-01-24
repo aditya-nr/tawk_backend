@@ -13,7 +13,12 @@ const {
     OTP_SALT,
     ACCESS_TOKEN_SALT,
     ACCESS_TOKEN_TTL,
-    DEBUG_MODE
+    DEBUG_MODE,
+    SMTP_USER,
+    SMTP_PASSWORD,
+    SMTP_SENDER,
+    SES_USER,
+    SES_KEY
 } = process.env;
 
 export const env = {
@@ -27,6 +32,11 @@ export const env = {
     ACCESS_TOKEN_SALT,
     ACCESS_TOKEN_TTL,
     DEBUG_MODE: DEBUG_MODE || false,
+    SMTP_USER,
+    SMTP_PASSWORD,
+    SMTP_SENDER,
+    SES_USER,
+    SES_KEY
 };
 
 // constant ========================
