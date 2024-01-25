@@ -1,5 +1,5 @@
 import { env } from "../constant.js";
-import { AccessTokenDto, JwtService } from "../services/index.js";
+import { AccessTokenDto, JwtService, UserDto } from "../services/index.js";
 
 export default (req, res, next) => {
     // 1) take user object
@@ -10,5 +10,5 @@ export default (req, res, next) => {
     // 3) generate jwt
     const token = JwtService.sign(data, env.ACCESS_TOKEN_TTL);
 
-    res.json({ status: 200, token });
+    res.json({ status: "OK", token, ...data, ...UserDto(user) });
 }

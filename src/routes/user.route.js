@@ -10,6 +10,6 @@ const router = express.Router();
 router.post('/otp', AuthController.sendOtp);
 router.post('/register', verifyOTP, AuthController.register, issueAuthToken);
 router.post('/login', AuthController.login, issueAuthToken);
-
+router.post('/username-avilable', AuthController.isUsernameAvilable);
 
 export default router;

@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 export default (err, req, res, next) => {
 
     const data = {
+        status: "ERROR",
         message: 'Internal Server Error',
         errors: []
     };

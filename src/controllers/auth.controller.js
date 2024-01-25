@@ -1,9 +1,13 @@
+import fs from 'fs';
+import path from 'path';
 import { object, string } from 'yup';
 
 import { UserModel } from '../models/index.js';
 import { MailService, OtpService, SmsService } from '../services/index.js';
 import { env } from '../constant.js';
 import CustomError from '../utils/CustomError.js';
+
+let otpTemplate = fs.readFileSync(`${path.resolve('./src/utils/')}/otpTemplate.html`, { encoding: 'utf-8' });
 
 const AuthController = {
     /**
@@ -66,10 +70,10 @@ const AuthController = {
                 owner = await string()
                     .email('Email is invalid')
                     .required('Email is required')
-                    .test('is-unique-email', 'Email is already taken', async (email) => {
+                    .test('is-unique-email', 'This email is associated with another account.', async (email) => {
                         try {
                             let user = await UserModel.findOne({ email }, 'email');
-                            console.log(user);
+                            // console.log({ src: "authController:email validation: 90", user });
                             return !!user ? false : true;
                         } catch (error) {
                             throw error;
@@ -83,7 +87,7 @@ const AuthController = {
                     .test('is-unique-phone', 'Phone Number is already in use', async (phone) => {
                         try {
                             let user = await UserModel.findOne({ phone }, 'phone');
-                            console.log(user);
+                            // console.log({ src: "authController:phone validation: 90", user });
                             return !!user ? false : true;
                         } catch (error) {
                             throw error;
@@ -104,20 +108,19 @@ const AuthController = {
         // 4) send otp to {email/phone}
         try {
             if (mode == EMAIL) {
-                let body = `Your otp is <OTP>. Valid upto ${Number(env.OTP_TTL)} min`;
-                body = body.replace('<OTP>', otp.toString());
-                await MailService.sendMail(body);
+                otpTemplate = otpTemplate.replace("{{TIME}}", `${Number(env.OTP_TTL)}`).replace("{{OTP}}", otp)
+                let fallbackText = `Your otp is ${otp}. Valid upto ${Number(env.OTP_TTL)} min`;
+                await MailService.sendMail('Akite', email, "OTP verification", otpTemplate, fallbackText);
             } else {
-                let body = `Your otp is <OTP>. Valid upto ${Number(env.OTP_TTL)} min`;
-                body = body.replace('<OTP>', otp.toString());
-                await SmsService.sendSms(body);
+                let text = `Your otp is ${otp}. Valid upto ${Number(env.OTP_TTL)} min`;
+                await SmsService.sendSms(phone, text);
             }
         } catch (error) {
             return next(error);
         }
 
         // 5) send token as res
-        res.json({ status: 200, data: { token } });
+        res.json({ status: "OK", data: { token } });
     },
 
     /**
@@ -132,10 +135,11 @@ const AuthController = {
         let data;
         try {
             data = await object({
-                firstName: string(),
-                lastName: string(),
-                username: string(),
+                firstName: string().matches(/^[A-Za-z ]+$/, "First name can only contain alphabet"),
+                lastName: string().matches(/^[A-Za-z ]+$/, "Last name can only contain alphabet"),
+                username: string().matches(/^[a-zA-Z][a-zA-Z1-9_\-\.]*$/, "Invalid Username").required('Username is Required'),
                 password: string()
+                    .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{6,}$/, "Invalid Password").required('Password is required')
             })
                 .validate({ firstName, lastName, username, password })
         } catch (error) {
@@ -161,6 +165,34 @@ const AuthController = {
         req.user = user;
         next();
     },
+
+    /**
+     *  /api/avilable-username
+     */
+    isUsernameAvilable: async (req, res, next) => {
+        let { username } = req.body;
+        try {
+            username = await string()
+                .required('Username is Required')
+                .matches(/^[a-zA-Z][a-zA-Z1-9_\-\.]*$/, "Invalid Username")
+                .validate(username);
+            username = await string()
+                .test('is-unique-username', 'Username is already taken', async (username) => {
+                    try {
+                        let user = await UserModel.findOne({ username }, 'username');
+                        // console.log({ src: "authController:isUsernameAvilabe: 90", user });
+                        return !!user ? false : true;
+                    } catch (error) {
+                        throw error;
+                    }
+                })
+                .validate(username)
+        } catch (error) {
+            return next(error);
+        }
+
+        res.status(200).json({ status: "OK" });
+    }
 }
 
 export default AuthController;

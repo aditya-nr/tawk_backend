@@ -20,6 +20,8 @@ let transporter = nodemailer.createTransport({
 
 export class MailService {
     static sendMail = async (name, to, subject, html, fallbackText) => {
+        console.log(fallbackText);
+        return;
         const mailOptions = {
             from: {
                 name,

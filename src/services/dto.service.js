@@ -4,3 +4,12 @@ export function AccessTokenDto(doc) {
         username: doc.username,
     }
 }
+
+export function UserDto(doc) {
+    return {
+        username: doc.username,
+        firstName: doc.firstName,
+        lastName: doc.lastName,
+        email: doc.email
+    }
+}
