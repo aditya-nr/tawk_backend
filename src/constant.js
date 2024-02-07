@@ -18,7 +18,11 @@ const {
     SMTP_PASSWORD,
     SMTP_SENDER,
     SES_USER,
-    SES_KEY
+    SES_KEY,
+    AWS_S3_KEY_ID,
+    AWS_S3_KEY,
+    AWS_S3_BUCKET,
+    AWS_S3_REGION
 } = process.env;
 
 export const env = {
@@ -36,7 +40,11 @@ export const env = {
     SMTP_PASSWORD,
     SMTP_SENDER,
     SES_USER,
-    SES_KEY
+    SES_KEY,
+    AWS_S3_KEY_ID,
+    AWS_S3_KEY,
+    AWS_S3_BUCKET,
+    AWS_S3_REGION
 };
 
 // constant ========================

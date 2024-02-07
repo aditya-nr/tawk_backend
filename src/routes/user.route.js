@@ -1,6 +1,6 @@
 import express from 'express';
 import { AuthController } from '../controllers/index.js';
-import { isAuth, issueAuthToken, verifyOTP } from '../middleware/index.js';
+import { issueAuthToken, verifyOTP } from '../middleware/index.js';
 
 const router = express.Router();
 

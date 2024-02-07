@@ -5,12 +5,39 @@ import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import cors from 'cors';
-
-import { userRouter } from './routes/index.js';
+import { Server } from 'socket.io';
+import { chatRouter, userRouter } from './routes/index.js';
 import { ApiError } from './middleware/index.js';
+import { isAuthSocket, createChatProfile, disconnectController, friendRequest, acceptFriendRequest, textMessage, FileMessage } from './socket/socket.js';
 
 
 const app = express();
+
+// socket.io 
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
+
+
+io.use(isAuthSocket);
+io.use(createChatProfile);
+io.on('connection', (socket) => {
+    socket.on('hello', (prop) => {
+        console.log(prop);
+        socket.emit('reply', "success");
+    });
+
+    socket.on('disconnect', () => disconnectController(socket));
+    socket.on('friend-request', (data, cb) => friendRequest(socket, data, cb));
+    socket.on('friend-accept', (data, cb) => acceptFriendRequest(socket, data, cb));
+    socket.on('text-message', (data, cb) => textMessage(socket, data, cb));
+    socket.on('file-message', (data, cb) => FileMessage(socket, data, cb));
+});
+
+
 
 // cors
 app.use(cors({
@@ -44,11 +71,10 @@ app.use(mongoSanitize({ replaceWith: '_' }));
 // routes
 app.get('/', (req, res) => res.json({ status: 200, mesagge: "ALL OK" }))
 app.use('/auth', userRouter);
+app.use('/chat', chatRouter);
 
 
 // error handler
 app.use(ApiError);
 
-
-const server = http.createServer(app);
 export default server;

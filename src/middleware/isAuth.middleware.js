@@ -3,7 +3,6 @@ import { JwtService } from "../services/index.js";
 
 export default async (req, res, next) => {
     const { token } = req.body;
-
     try {
         // validate the data
         await string().required('Token is required').validate(token);

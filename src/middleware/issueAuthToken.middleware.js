@@ -5,10 +5,11 @@ export default (req, res, next) => {
     // 1) take user object
     const { user } = req;
 
-    // 2) prepare data for jwt
-    const data = AccessTokenDto(user);
-    // 3) generate jwt
-    const token = JwtService.sign(data, env.ACCESS_TOKEN_TTL);
+    // 2) generate jwt
+    const token = JwtService.sign(AccessTokenDto(user), env.ACCESS_TOKEN_TTL);
 
-    res.json({ status: "OK", token, ...data, ...UserDto(user) });
+    // 3) prepare data for jwt
+    const data = { token, ...UserDto(user) }
+
+    res.json({ status: "OK", data });
 }
