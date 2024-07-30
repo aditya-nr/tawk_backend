@@ -41,13 +41,13 @@ export const ChatProfileController = {
 
             const messageCountMap = {};
             messageCount.forEach(e => {
-                e.messageCount.forEach(p => {
-                    if (p.username != username) {
-                        messageCountMap[p.username] = p.count;
-                    }
-                })
+                if (e.messageCount[0].username == username) {
+                    messageCountMap[e.messageCount[1].username] = e.messageCount[0].count;
+                }
+                else if (e.messageCount[1].username == username) {
+                    messageCountMap[e.messageCount[0].username] = e.messageCount[1].count;
+                }
             })
-
             let data = user?.friends.map(e => {
                 const status = e.status;
                 const { username, name, avatar, lastSeen, about } = e._id;
@@ -72,9 +72,16 @@ export const ChatProfileController = {
                     participants: {
                         $all: [to_user, cur_user]
                     }
-                },
+                }
             )
-            return res.json({ status: 'OK', data: doc ? doc.chats : [] });
+            const data = doc ? doc.chats : [];
+            doc.messageCount = doc.messageCount.map(e => {
+                if (e.username == cur_user)
+                    return { ...e, count: 0 };
+                else return e;
+            })
+            await doc.save();
+            return res.json({ status: 'OK', data: data });
         } catch (error) {
             next(error);
         }

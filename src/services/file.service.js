@@ -19,7 +19,11 @@ export class FileServie {
             Key
         })
         const url = await getSignedUrl(client, command, {
-            expiresIn: 500
+            expiresIn: 3600, // URL expiration time in seconds
+            corsParams: {
+                'x-amz-meta-origin': '*', // Example: Allow any origin
+                'x-amz-meta-method': 'GET' // Example: Allow only GET method
+            }
         });
         return url;
     }
